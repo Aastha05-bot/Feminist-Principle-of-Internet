@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feminist Principle of Internet</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+:root{
+  --white:#FFFFFF;
+  --gray:#F3F2EF;
+  --ink:#18181A;
+  --mist:#6E6D68;
+  --pink:#E8276B;
+  --pink-tint:#FCE4EC;
+  --border:#E4E2DC;
+  --status-fast:#1F9254;
+  --status-medium:#C98A12;
+  --status-slow:#D1393C;
+  --r:12px;
+  --shadow:0 6px 24px rgba(24,24,26,.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--white);
+  color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+  font-weight:400;
+  line-height:1.65;
+  overflow-x:hidden;
+}
+::selection{background:var(--pink);color:#fff;}
+h1,h2,h3{font-family:'Syne',sans-serif;font-weight:800;line-height:1.06;letter-spacing:-.02em;}
+h1{font-size:clamp(2.4rem,6.5vw,4.6rem);}
+h2{font-size:clamp(1.9rem,4.2vw,3rem);}
+h3{font-size:clamp(1.3rem,2.6vw,1.7rem);}
+p{max-width:58ch;}
+a{color:var(--pink);}
+.mono{font-family:'DM Mono',monospace;font-size:.8rem;letter-spacing:.05em;}
+
+.fixed-nav{
+  position:fixed;top:20px;left:28px;z-index:1000;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;
+  color:var(--ink);letter-spacing:-.02em;pointer-events:none;
+}
+.fixed-nav span{color:var(--pink);}
+
+.bar{position:fixed;top:0;left:0;width:100%;height:4px;background:var(--pink-tint);z-index:9999;}
+.bar-fill{height:100%;width:0%;background:var(--pink);}
+
+.wrap{max-width:780px;margin:0 auto;padding:0 28px;}
+.wrap-wide{max-width:1160px;margin:0 auto;padding:0 28px;}
+.section{padding:110px 0;background:var(--white);}
+.section.alt{background:var(--gray);}
+@media(max-width:700px){.section{padding:80px 0;}}
+
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'DM Mono',monospace;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mist);border:1.5px solid var(--border);border-radius:999px;
+  padding:6px 14px;margin-bottom:20px;background:var(--white);
+}
+.tag.pink{color:var(--pink);border-color:var(--pink);}
+
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.16,1,.3,1);}
+.reveal.on{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}*{animation-duration:.001ms !important;}}
+
+.cite{font-size:.66em;vertical-align:super;color:var(--pink);font-weight:700;text-decoration:none;margin-left:2px;cursor:pointer;}
+.cite:hover{text-decoration:underline;}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);}
+
+.btn{
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.92rem;
+  padding:12px 24px;border-radius:var(--r);border:1.5px solid var(--ink);
+  background:var(--white);color:var(--ink);cursor:pointer;transition:all .2s;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.btn-pink{background:var(--pink);border-color:var(--pink);color:#fff;}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero{position:relative;height:100vh;background:var(--white);overflow:hidden;}
+.hero-slider{position:relative;width:100%;height:100%;overflow:hidden;}
+.slides{display:flex;width:200%;height:100%;will-change:transform;}
+.slide{flex:0 0 50%;width:50%;height:100%;display:flex;align-items:center;justify-content:center;padding:0 28px;}
+.hero-text-overlay{max-width:760px;text-align:center;}
+.hero-text-overlay .pink-text{color:var(--pink);}
+.hero-sub{margin-top:24px;font-size:clamp(1rem,2vw,1.2rem);color:var(--mist);max-width:54ch;margin-inline:auto;}
+.hero-scroll{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  font-family:'DM Mono',monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mist);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:5;
+}
+.hero-scroll span{width:1px;height:26px;background:var(--pink);animation:drip 1.8s ease-in-out infinite;}
+@keyframes drip{0%,100%{opacity:.25;}50%{opacity:1;}}
+
+/* =========================================================
+   PRINCIPLE SECTION LAYOUT (shared)
+   ========================================================= */
+.principle-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:60px;align-items:start;}
+.principle-grid.reverse{grid-template-columns:1.1fr 1fr;}
+.principle-grid.reverse > :nth-child(1){order:2;}
+.principle-grid.reverse > :nth-child(2){order:1;}
+.principle-grid.stacked{grid-template-columns:1fr;gap:40px;align-items:center;text-align:center;max-width:800px;margin-inline:auto;}
+.principle-grid.stacked .principle-copy{display:flex;flex-direction:column;align-items:center;}
+.principle-grid.stacked .principle-copy p{text-align:center;}
+
+/* Z-PATTERN LAYOUT */
+.z-pattern-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px 60px;align-items:center;}
+.z-pattern-item-1{grid-column:1 / 2;grid-row:1 / 2;}
+.z-pattern-item-2{grid-column:2 / 3;grid-row:1 / 2;}
+.z-pattern-item-3{grid-column:1 / 2;grid-row:2 / 3;}
+.z-pattern-item-4{grid-column:2 / 3;grid-row:2 / 3;}
+
+/* F-PATTERN LAYOUT */
+.f-pattern-layout{display:flex;flex-direction:column;gap:30px;max-width:960px;}
+.f-pattern-row{display:flex;gap:40px;align-items:stretch;border-left:4px solid var(--pink-tint);padding-left:24px;}
+.f-pattern-heading{margin-bottom:10px;}
+.f-pattern-main{flex:1;}
+.f-pattern-side{flex:1;}
+
+/* INTERACTIVE HINTS */
+.interactive-parent{cursor:pointer;}
+
+@media(max-width:900px){
+  .principle-grid{grid-template-columns:1fr;gap:36px;}
+  .principle-grid.reverse{grid-template-columns:1fr;}
+  .principle-grid.reverse > :nth-child(1){order:1;}
+  .principle-grid.reverse > :nth-child(2){order:2;}
+  .z-pattern-grid{grid-template-columns:1fr;}
+  .z-pattern-item-1,.z-pattern-item-2,.z-pattern-item-3,.z-pattern-item-4{grid-column:1 / -1;grid-row:auto;}
+  .z-pattern-item-3{display:none;}
+  .f-pattern-row{flex-direction:column;gap:20px;border-left:2px solid var(--pink-tint);padding-left:16px;}
+}
+.principle-copy h4.eyebrow{
+  font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pink);margin-bottom:10px;font-weight:500;
+}
+.principle-copy p{color:var(--mist);margin-top:14px;}
+
+/* =========================================================
+   ACCESS: scroll-driven sticky analytics
+   ========================================================= */
+.access-analytics-scroller{
+  position:relative;
+  height:calc(100vh * 3);
+}
+.access-analytics-sticky{
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--gray);
+  overflow:hidden;
+}
+.analytics-slide-track{
+  width:100%;max-width:680px;padding:0 28px;
+  position:relative;
+  /* Fixed height so the slide container doesn't collapse */
+  min-height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.analytics-slide{
+  position:absolute;
+  top:50%;
+  left:28px;right:28px;
+  transform:translateY(-50%) translateX(60px);
+  opacity:0;
+  transition:opacity .55s ease,transform .55s cubic-bezier(.16,1,.3,1);
+  text-align:center;
+  pointer-events:none;
+  width:calc(100% - 56px);
+}
+.analytics-slide.active{
+  opacity:1;
+  transform:translateY(-50%) translateX(0);
+  pointer-events:auto;
+}
+.analytics-slide.exit{
+  opacity:0;
+  transform:translateY(-50%) translateX(-60px);
+}
+.analytics-bar-group{display:flex;flex-direction:column;gap:24px;width:100%;max-width:500px;margin:0 auto 18px;}
+.analytics-stat-bar{text-align:left;}
+.analytics-bar-wrap{width:100%;margin-top:6px;}
+.analytics-bar-track{width:100%;height:34px;background:var(--border);border-radius:17px;overflow:hidden;}
+.calc-slider::-moz-range-thumb{width:18px;height:18px;background:var(--pink);border:none;border-radius:50%;cursor:pointer;}
+
+/* =========================================================
+   QUIZ SECTION
+   ========================================================= */
+.quiz-container { position:relative; overflow:hidden; min-height:250px; }
+.quiz-question { display:none; flex-direction:column; gap:0px; animation:fadeIn .4s ease; }
+.quiz-question.active { display:flex; }
+.quiz-question h3 { font-size:1.1rem; margin-bottom:16px; font-weight:700; color:var(--ink); font-family:inherit; }
+.quiz-options { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.btn-quiz { background:var(--gray); border:1.5px solid var(--border); padding:14px 20px; border-radius:var(--r); text-align:left; font-family:inherit; font-size:1rem; cursor:pointer; color:var(--ink); transition:all .2s ease; }
+.btn-quiz:hover:not(:disabled) { border-color:var(--mist); }
+.btn-quiz.correct { border-color:#1F9254; background:#E5F5ED; color:#1F9254; }
+.btn-quiz.incorrect { border-color:#D1393C; background:#FBE3E4; color:#D1393C; }
+.quiz-feedback { display:none; flex-direction:column; gap:12px; padding:16px; border-radius:var(--r); background:var(--gray); animation:fadeIn .4s ease; margin-bottom:10px; }
+.quiz-feedback.show { display:flex; }
+.q-status { font-weight:700; font-family:'Syne',sans-serif; font-size:1.1rem; }
+.q-status.correct-text { color:#1F9254; }
+.q-status.incorrect-text { color:#D1393C; }
+.q-explanation { font-size:.9rem; color:var(--mist); line-height:1.5; }
+.quiz-results { display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 20px; background:var(--gray); border-radius:var(--r); animation:fadeIn .4s ease; border:1px solid var(--border); }
+.quiz-results.active { display:flex; }
+.quiz-score { font-family:'Syne',sans-serif; font-size:4rem; font-weight:800; color:var(--pink); line-height:1; margin-bottom:10px; }
+
+.analytics-bar-fill{height:100%;width:0%;background:var(--pink);transition:width 1.3s cubic-bezier(.16,1,.3,1);display:flex;align-items:center;justify-content:flex-end;padding-right:14px;}
+.analytics-bar-fill.ink{background:var(--ink);}
+.analytics-bar-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:#fff;line-height:1;white-space:nowrap;}
+.analytics-label{font-size:.9rem;color:var(--mist);font-weight:600;}
+.analytics-note{font-size:.84rem;color:var(--mist);text-align:center;}
+
+/* ---- Principle 1 content: hidden until analytics complete ---- */
+#accessPrincipleContent{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity .8s ease, transform .8s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
+}
+#accessPrincipleContent.revealed{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+}
+
+/* ---- Map box ---- */
+.map-box{margin-top:20px;}
+#leaflet-map{width:100%;height:360px;border-radius:var(--r);border:1px solid var(--border);}
+.leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.speed-popup{font-family:'DM Sans',sans-serif;padding:6px 4px;min-width:190px;}
+.speed-popup .p-status{
+  display:inline-block;font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;
+  letter-spacing:.05em;font-weight:700;padding:2px 8px;border-radius:8px;margin-bottom:6px;color:#fff;
+}
+.speed-popup .p-status.fast{background:var(--status-fast);}
+.speed-popup .p-status.medium{background:var(--status-medium);}
+.speed-popup .p-status.slow{background:var(--status-slow);}
+.speed-popup .p-city{font-weight:700;font-size:.95rem;margin-bottom:2px;}
+.speed-popup .p-province{font-size:.74rem;color:var(--mist);margin-bottom:6px;}
+.speed-popup .p-speed{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;}
+.speed-popup .p-isp{font-size:.72rem;color:var(--mist);margin-top:4px;line-height:1.5;}
+.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:.78rem;color:var(--mist);}
+.map-legend span{display:inline-flex;align-items:center;gap:6px;}
+.map-legend .sw{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.map-disclaimer{font-size:.76rem;color:var(--mist);margin-top:10px;}
+
+/* =========================================================
+   MOVEMENTS
+   ========================================================= */
+.creator-box{padding:30px;}
+.split-label-row{display:flex;justify-content:space-between;font-weight:700;font-size:.9rem;margin-bottom:14px;}
+.split-label-row .lbl-consumer{color:var(--mist);}
+.split-label-row .lbl-creator{color:var(--pink);}
+.creator-range{width:100%;accent-color:var(--pink);margin-bottom:18px;}
+.split-screen{display:flex;height:230px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);position:relative;}
+.split-side{overflow:hidden;transition:flex .3s ease;}
+.split-consumer{flex:1;background:var(--gray);padding:10px;}
+.split-creator{flex:0;background:var(--ink);}
+.feed-post{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;font-size:.72rem;}
+.feed-name{font-weight:700;margin-bottom:3px;}
+.feed-text{color:var(--mist);}
+.code-editor{height:100%;padding:14px;font-family:'DM Mono',monospace;font-size:.72rem;color:#9fe6a0;white-space:pre;overflow:hidden;}
+
+
+/* =========================================================
+   ECONOMY
+   ========================================================= */
+.search-box{padding:30px;}
+.keyword-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.k-chip{
+  background:var(--white);border:1.5px solid var(--border);border-radius:999px;padding:10px 18px;
+  cursor:pointer;font-size:.88rem;font-weight:600;transition:all .2s;
+}
+.k-chip.active{border-color:var(--pink);color:var(--pink);background:var(--pink-tint);}
+.search-result{
+  border:1px solid var(--border);border-radius:var(--r);padding:18px;min-height:70px;
+  filter:blur(6px);opacity:.6;transition:filter 1s ease,opacity 1s ease;
+}
+.search-result.revealed{filter:blur(0);opacity:1;}
+.search-result h5{font-size:1rem;margin-bottom:6px;}
+.search-result p{font-size:.86rem;color:var(--mist);}
+.search-placeholder{color:var(--mist);font-size:.9rem;text-align:center;padding:20px 0;}
+
+/* =========================================================
+   EXPRESSION
+   ========================================================= */
+.expression-layout{
+  display:flex;gap:50px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;
+}
+.expression-left{flex:1 1 420px;min-width:280px;}
+.expression-left h4.eyebrow{
+  font-family:'DM Mono',monospace;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--pink);margin-bottom:10px;font-weight:500;
+}
+.expression-left p{color:var(--mist);margin-top:14px;}
+/* .expr-stat-block{} */
+.expr-num{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.6rem,6vw,4rem);color:var(--pink);line-height:1;}
+.expr-label-large{font-size:.96rem;color:var(--ink);margin-top:10px;max-width:26ch;line-height:1.45;}
+.expr-cite{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--mist);margin-top:8px;}
+.expr-note{margin-top:36px;font-size:.9rem;color:var(--mist);line-height:1.6;max-width:36ch;border-left:2px solid var(--pink);padding-left:14px;}
+.expression-right{display:flex;justify-content:center;align-items:flex-start;flex:0 0 auto;}
+.phone-mockup{
+  width:260px;background:var(--white);border:2px solid var(--border);border-radius:32px;
+  overflow:hidden;box-shadow:0 18px 48px rgba(24,24,26,.13);
+  margin:0 auto;
+}
+.phone-status-bar{
+  background:var(--white);display:flex;justify-content:space-between;align-items:center;
+  padding:8px 18px 4px;font-size:.6rem;color:var(--mist);
+}
+.insta-header{
+  display:flex;align-items:center;gap:9px;padding:8px 12px;
+  border-bottom:1px solid var(--border);
+}
+.insta-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--pink),#c4357a);}
+.insta-uname{font-size:.76rem;font-weight:700;flex:1;}
+.insta-dots{font-size:.9rem;color:var(--mist);letter-spacing:2px;}
+.insta-image-area{
+  width:100%;aspect-ratio:1/1;
+  background:linear-gradient(135deg,#e8276b 0%,#c4357a 50%,#3d2c5c 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.insta-actions-bar{display:flex;gap:12px;padding:8px 12px 4px;}
+.insta-caption-row{padding:2px 12px 8px;font-size:.72rem;line-height:1.4;}
+.insta-uname2{font-weight:700;}
+.insta-comments{
+  padding:0 12px 14px;max-height:220px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:12px;
+}
+.insta-comments::-webkit-scrollbar{width:4px;}
+.insta-comments::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.insta-comment{
+  display:flex;gap:6px;align-items:flex-start;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .45s ease,transform .45s ease;
+}
+.insta-comment.show{opacity:1;transform:none;}
+.insta-comment .ic-avatar{width:20px;height:20px;border-radius:50%;background:var(--border);flex-shrink:0;margin-top:2px;}
+.insta-comment .ic-bubble{font-size:.72rem;background:var(--gray);border-radius:3px 10px 10px 10px;padding:6px 9px;flex:1;}
+.insta-comment.harm .ic-bubble{background:#FBE3E4;color:#8A1E22;}
+.insta-comment .ic-content{display:flex;flex-direction:column;gap:4px;flex:1;}
+.insta-comment .ic-actions{display:flex;gap:8px;font-size:0.6rem;margin-left:4px;}
+.insta-comment .ic-actions button{background:none;border:none;color:var(--mist);font-family:inherit;font-size:inherit;cursor:pointer;text-decoration:underline;}
+.insta-comment .ic-actions button:hover{color:var(--ink);}
+
+/* =========================================================
+   EMBODIMENT
+   ========================================================= */
+.tc-box{padding:30px;}
+.tc-stage{display:none;}
+.tc-stage.active{display:block;animation:fadeIn .4s ease;}
+.tc-prompt{font-size:.95rem;color:var(--mist);margin-bottom:20px;}
+.tc-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.tc-doc{
+  max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);
+  padding:18px;font-size:.84rem;color:var(--mist);background:var(--gray);
+}
+.tc-doc p{margin-bottom:12px;}
+.tc-clause{
+  color:#D1393C;font-weight:700;margin:12px 0;opacity:0.3;
+  transition:opacity .5s ease;
+}
+.tc-clause.visible{opacity:1;}
+.tc-clause strong{color:var(--pink);}
+.tc-doc-actions{display:flex;gap:10px;margin-top:16px;}
+.permissions-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0;}
+@media(max-width:600px){.permissions-grid{grid-template-columns:repeat(2,1fr);}}
+.perm-card{text-align:center;padding:14px 6px;border:1.5px solid var(--pink);border-radius:var(--r);background:var(--pink-tint);}
+.perm-card svg{width:24px;height:24px;stroke:var(--pink);margin-bottom:6px;}
+.perm-card span{display:block;font-size:.7rem;font-weight:700;}
+.tc-reveal-headline{font-size:1.2rem;font-family:'Syne',sans-serif;font-weight:800;margin-bottom:10px;}
+.tc-reveal-sub{font-size:.9rem;color:var(--mist);margin-bottom:8px;}
+
+/* =========================================================
+   ENVIRONMENT
+   ========================================================= */
+.carbon-calc-box{padding:30px;}
+.calc-row{margin-bottom:20px;}
+.calc-label-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:.88rem;color:var(--mist);font-weight:600;}
+.calc-label-row strong{color:var(--ink);}
+.calc-slider{width:100%;accent-color:var(--pink);}
+.carbon-results{background:var(--gray);border-radius:var(--r);padding:20px;margin-top:10px;}
+.results-title{font-family:'DM Mono',monospace;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mist);margin-bottom:10px;}
+.carbon-value{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--pink);margin-bottom:14px;}
+.equivalents-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.equivalent-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.equivalent-card h5{font-size:.7rem;color:var(--mist);font-weight:600;}
+.equivalent-card p{font-size:.92rem;font-weight:700;margin-top:2px;}
+.calc-disclaimer{font-size:.74rem;color:var(--mist);margin-top:14px;}
+
+/* =========================================================
+   REFERENCES + FOOTER
+   ========================================================= */
+.ref-item{display:flex;gap:10px;margin-bottom:16px;font-size:.92rem;color:var(--ink);scroll-margin-top:100px;}
+.ref-item .ref-num{font-weight:800;color:var(--pink);flex-shrink:0;}
+.ref-item a{color:var(--pink);}
+footer{padding:50px 0 70px;text-align:center;background:var(--white);display:flex;flex-direction:column;align-items:center;}
+footer p{font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--mist);margin-bottom:6px;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="bar-fill" id="progressBar"></div></div>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="bubble-cluster">
+    <div class="bubble b1"></div>
+    <div class="bubble b2"></div>
+    <div class="bubble b3"></div>
+    <div class="bubble b4"></div>
+    <div class="bubble b5"></div>
+  </div>
+  <div class="hero-slider" id="hero-slider">
+    <div class="slides" id="hero-slides">
+      <div class="slide active" id="hero-slide-1">
+        <div class="hero-text-overlay">
+          <p class="tag pink">Digital rights · Nepal</p>
+          <h1>A Feminist Internet</h1>
+          <p class="hero-sub">An internet where nobody is left behind.</p>
+        </div>
+      </div>
+      <div class="slide" id="hero-slide-2">
+        <div class="hero-text-overlay">
+          <h1>You have a phone.<br>You have internet.<br><span class="pink-text">But are you truly free online?</span></h1>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll mono"><span></span>scroll to begin</div>
+</section>
+
+<!-- START HERE -->
+<section class="section" id="start-here">
+  <div class="wrap reveal">
+    <p class="tag">Before you scroll on</p>
+    <h2>Start here</h2>
+    <div style="margin-top:24px;">
+      <p>By the end of 2025, 44% of Nepal's population roughly 13 million people still weren't online.<sup><a href="#ref-4" class="cite">4</a></sup> Of the people who are, only 43% of social media users are women, against 56.1% men.<sup><a href="#ref-4" class="cite">4</a></sup> Equal access, safety, and participation online aren't side issues they decide who gets to learn, organise, and be heard at all.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE 1: ACCESS -->
+<section class="section alt" id="access" style="padding:0;">
+
+  <!-- Sticky analytics scroll zone (3× viewport height) -->
+  <div class="access-analytics-scroller" id="accessScroller">
+    <div class="access-analytics-sticky" id="accessSticky">
+      <div class="analytics-slide-track" id="analyticsTrack">
+        <!-- Slide 1 -->
+        <div class="analytics-slide" id="aSlide0">
+          <div class="analytics-bar-group">
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Women (15–49) own a phone</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill" data-width="81.6%">
+                    <div class="analytics-bar-val" data-count-to="81.6" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Men own a phone</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill ink" data-width="90.4%">
+                    <div class="analytics-bar-val" data-count-to="90.4" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="analytics-note">Phone ownership already shows a gender gap<sup><a href="#ref-3" class="cite">3</a></sup></p>
+        </div>
+        <!-- Slide 2 -->
+        <div class="analytics-slide" id="aSlide1">
+          <div class="analytics-bar-group">
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Women use the internet</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill" data-width="27%">
+                    <div class="analytics-bar-val" data-count-to="27" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Men use the internet</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill ink" data-width="41%">
+                    <div class="analytics-bar-val" data-count-to="41" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="analytics-note">Rural women's access drops as low as 10%<sup><a href="#ref-3" class="cite">3</a></sup></p>
+        </div>
+        <!-- Slide 3 -->
+        <div class="analytics-slide" id="aSlide2">
+          <div class="analytics-bar-group">
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Bagmati internet access</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill" data-width="76%">
+                    <div class="analytics-bar-val" data-count-to="76" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="analytics-stat-bar">
+              <div class="analytics-label">Madhesh internet access</div>
+              <div class="analytics-bar-wrap">
+                <div class="analytics-bar-track">
+                  <div class="analytics-bar-fill ink" data-width="50%">
+                    <div class="analytics-bar-val" data-count-to="50" data-suffix="%">0%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="analytics-note">Regional inequality highest vs. lowest province<sup><a href="#ref-3" class="cite">3</a></sup></p>
+        </div>
+      </div>
+      <!-- NO dots here removed -->
+    </div>
+  </div>
+
+  <!-- Principle 1 content: only shown after analytics scroll is complete -->
+  <div id="accessPrincipleContent" style="padding:110px 0; background:var(--gray);">
+    <div class="wrap-wide">
+      <div class="principle-grid" style="align-items:start;">
+        <div class="principle-copy">
+          <h4 class="eyebrow">Principle 1</h4>
+          <h2>Access</h2>
+          <p>Where you live, and whether you're a woman or a man, still decides how or whether you get online in Nepal. Only 27% of women use the internet compared to 41% of men, and in rural areas that drops as low as 10%.<sup><a href="#ref-3" class="cite">3</a></sup> Hover the pins to see the gap by province.</p>
+        </div>
+        <div>
+          <div class="map-box interactive-parent" data-hint="Click on pin">
+            <div id="leaflet-map"></div>
+            <div class="map-legend">
+              <span><span class="sw" style="background:var(--status-fast);"></span>Fast</span>
+              <span><span class="sw" style="background:var(--status-medium);"></span>Moderate</span>
+              <span><span class="sw" style="background:var(--status-slow);"></span>Slow</span>
+            </div>
+            <p class="map-disclaimer">Speeds and ISP lists are illustrative approximations, not live measurements.<sup><a href="#ref-5" class="cite">5</a></sup></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- PRINCIPLE 2: MOVEMENTS -->
+<section class="section" id="movements">
+  <div class="wrap-wide principle-grid">
+    <div class="principle-copy reveal">
+      <h4 class="eyebrow">Principle 2</h4>
+      <h2>Movements</h2>
+      <p>Most people online consume scrolling is easy, but creating requires confidence, skills, and time, resources not shared equally by gender, class, or geography. In Nepal, digital tools have already powered real movements: earthquake documentation, LGBTIQ+ solidarity networks, and nationwide women's rights campaigns.<sup><a href="#ref-1" class="cite">1</a></sup> Drag the slider to see what the shift from consumer to creator looks like.</p>
+    </div>
+    <div class="card creator-box reveal interactive-parent" data-hint="← Drag to shift →">
+      <div class="split-label-row">
+        <span class="lbl-consumer">Consumer</span>
+        <span class="lbl-creator">Creator</span>
+      </div>
+      <input type="range" id="creatorSlider" class="creator-range" min="0" max="100" value="0">
+      <div class="split-screen" id="splitScreen">
+        <div class="split-side split-consumer" id="splitConsumer">
+          <div class="feed-post"><div class="feed-name">@user123</div><div class="feed-text">Just scrolling...</div></div>
+          <div class="feed-post"><div class="feed-name">@scrolllife</div><div class="feed-text">Another day, another feed...</div></div>
+          <div class="feed-post"><div class="feed-name">@passive_user</div><div class="feed-text">Liking posts, not creating...</div></div>
+        </div>
+        <div class="split-side split-creator" id="splitCreator">
+          <div class="code-editor" id="codeEditor"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE 3: ECONOMY -->
+<section class="section alt" id="economy">
+  <div class="wrap-wide principle-grid">
+    <div class="principle-copy reveal">
+      <h4 class="eyebrow">Principle 3</h4>
+      <h2>Economy</h2>
+      <p>The internet is not a neutral marketplace. What surfaces first in a search is shaped by advertising, not need and every click generates data sold to platforms mostly headquartered outside Nepal, with none of the value returning to the communities producing it.<sup><a href="#ref-4" class="cite">4</a></sup> Search below to see how visibility is decided by economics, not relevance.</p>
+    </div>
+    <div class="card search-box reveal interactive-parent" data-hint="Type to search">
+      <div style="margin-bottom:16px;">
+        <input type="text" id="econSearchInput" placeholder="Try typing any words" style="width:100%; padding:14px; border:1.5px solid var(--border); border-radius:var(--r); font-family:inherit; font-size:1rem; outline:none; transition:border-color 0.2s;">
+      </div>
+      <div id="searchResultBox">
+        <p class="search-placeholder">Type a topic above to see what comes up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE 4: EXPRESSION -->
+<section class="section" id="expression">
+  <div class="wrap-wide">
+    <div class="expression-layout reveal">
+      <div class="expression-left">
+        <h4 class="eyebrow">Principle 4</h4>
+        <h2 style="margin-bottom:14px;">Expression</h2>
+        <p style="color:var(--mist);margin-bottom:36px;">Speaking online carries a cost that isn't shared equally. Watch what arrives in the comments automatically.</p>
+        <div class="expr-stat-block">
+          <div class="expr-num" data-count-to="83.5" data-suffix="%">0%</div>
+          <div class="expr-label-large">of straight respondents received unwanted sexually explicit material online</div>
+          <div class="expr-cite"><sup><a href="#ref-2" class="cite">2</a></sup> Body &amp; Data Nepal · Identities Experiencing the Internet</div>
+        </div>
+        <div class="expr-stat-block" style="margin-top:40px;">
+          <div class="expr-num" data-count-to="97.4" data-suffix="%">0%</div>
+          <div class="expr-label-large">of LGBTIQA+ respondents received abusive comments</div>
+          <div class="expr-cite"><sup><a href="#ref-2" class="cite">2</a></sup> Body &amp; Data Nepal · Identities Experiencing the Internet</div>
+        </div>
+        <div class="expr-note">
+          Online violence doesn't affect everyone equally. LGBTIQA+ people face near-universal abuse. Platforms that don't protect marginalised voices are not neutral they are complicit.
+        </div>
+      </div>
+      <div class="expression-right">
+        <div class="phone-mockup">
+          <div class="phone-status-bar">
+            <span class="mono" style="font-size:.62rem;">9:41</span>
+            <span style="font-size:.6rem;">●●●●</span>
+          </div>
+          <div class="insta-header">
+            <div class="insta-avatar"></div>
+            <span class="insta-uname">alex_writes</span>
+          </div>
+          <div class="insta-image-area" style="padding:0;background:none;">
+            <img src="pride.png" alt="Pride post" style="width:100%;height:100%;object-fit:cover;display:block;">
+          </div>
+          <div class="insta-actions-bar">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--ink)" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--ink)" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="insta-caption-row"><span class="insta-uname2">alex_writes</span> Accepting myself was hard, but hiding was harder.</div>
+          <div class="insta-comments" id="instaComments"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE 5: EMBODIMENT -->
+<section class="section alt" id="embodiment">
+  <div class="wrap-wide principle-grid stacked">
+    <div class="principle-copy reveal">
+      <h4 class="eyebrow">Principle 5</h4>
+      <h2>Embodiment</h2>
+      <p>Every app permission is a request to access your body your face, voice, location, contacts. In Nepal, where interfaces are often English-only and digital literacy is still growing, meaningful consent is hard to give. For women and LGBTIQA+ people the risks are compounded: location data enables surveillance, and facial recognition has documented accuracy failures for people of colour and non-binary individuals.<sup><a href="#ref-6" class="cite">6</a></sup> Try the simulation below.</p>
+    </div>
+    <div class="card tc-box reveal" id="tcBox">
+      <div class="tc-stage active" id="tc-stage-1">
+        <p class="tc-prompt"><strong>NepaliConnect</strong> needs your permission to continue.</p>
+        <div class="tc-actions">
+          <button class="btn btn-pink" id="tcAcceptBtn">Accept</button>
+          <button class="btn" id="tcReadMoreBtn">Read Terms &amp; Conditions</button>
+        </div>
+      </div>
+      <div class="tc-stage" id="tc-stage-2">
+        <div class="tc-doc" id="tcDoc">
+          <p>Welcome to NepaliConnect. By continuing, you agree to the following.</p>
+          <div class="tc-clause" data-label="Camera &amp; Microphone"><strong>Clause 4.</strong> You consent to background access to your camera and microphone for "quality and safety" purposes, at any time the app is open.</div>
+          <p>We may use aggregated, anonymised data to improve our services for everyone.</p>
+          <div class="tc-clause" data-label="Location"><strong>Clause 7.</strong> Your precise location is recorded continuously, even when the app is not in active use, and may be shared with advertising partners.</div>
+          <p>Your account remains subject to these terms for as long as you use the service.</p>
+          <div class="tc-clause" data-label="Contacts &amp; Photos"><strong>Clause 11.</strong> You grant a perpetual licence to your contact list and photo library, including the right to use uploaded photos for facial-recognition model training.</div>
+        </div>
+        <div class="tc-doc-actions">
+          <button class="btn btn-pink" id="tcAcceptBtn2">Accept</button>
+          <button class="btn" id="tcBackBtn">Back</button>
+        </div>
+      </div>
+      <div class="tc-stage" id="tc-stage-3" style="text-align:center; padding:20px 0;">
+        <p class="tc-reveal-headline">Here's what you just agreed to.</p>
+        <p class="tc-reveal-sub" style="font-size:1.05rem; color:var(--ink); margin: 30px 0; line-height:1.6;">You have granted access to five permissions:<br><strong style="color:var(--pink);">Camera, Microphone, Location, Contacts, and Photos</strong><br>without reading a word.</p>
+        <p class="tc-reveal-sub" style="font-weight:700; color:var(--mist);">Real consent is informed, specific, and reversible—not a single tap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE 6: ENVIRONMENT -->
+<section class="section" id="environment">
+  <div class="wrap-wide">
+    <div class="f-pattern-layout reveal">
+      <div class="f-pattern-heading">
+        <h4 class="eyebrow" style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--pink);margin-bottom:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:500;">Principle 6</h4>
+        <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(1.9rem,4.2vw,3rem);margin-bottom:0;">Environment</h2>
+      </div>
+      <div class="f-pattern-row">
+        <div class="f-pattern-main">
+          <p style="color:var(--mist);max-width:58ch;">The internet feels weightless, but data centres already account for 1–1.5% of global electricity use and rising.<sup><a href="#ref-7" class="cite">7</a></sup> One hour of HD streaming produces roughly 36g of CO₂; a new smartphone carries 60–70kg of embodied carbon before it's ever switched on.<sup><a href="#ref-8" class="cite">8</a></sup> Nepal contributes less than 0.1% of global emissions yet faces glacial floods, erratic monsoons, and landslides driven by a climate crisis it didn't create.</p>
+        </div>
+      </div>
+      <div class="f-pattern-row" style="margin-top:20px;">
+        <div class="f-pattern-main">
+          <h3 style="font-family:'Syne',sans-serif;font-size:1.4rem;margin-bottom:14px;">Your Digital Footprint</h3>
+          <div class="card carbon-calc-box interactive-parent" data-hint="Slide to estimate">
+            <div class="calc-row">
+              <div class="calc-label-row"><span>Streaming</span><strong id="streamVal">10 hrs/week</strong></div>
+              <input type="range" class="calc-slider" id="streamSlider" min="0" max="40" value="10">
+            </div>
+            <div class="calc-row">
+              <div class="calc-label-row"><span>Cloud storage</span><strong id="cloudVal">20 GB</strong></div>
+              <input type="range" class="calc-slider" id="cloudSlider" min="0" max="500" value="20">
+            </div>
+            <div class="calc-row">
+              <div class="calc-label-row"><span>New device every</span><strong id="deviceVal">2 years</strong></div>
+              <input type="range" class="calc-slider" id="deviceSlider" min="1" max="6" value="2">
+            </div>
+          </div>
+        </div>
+        <div class="f-pattern-side">
+          <div class="carbon-results" style="height:100%;display:flex;flex-direction:column;justify-content:center;margin-top:40px;">
+            <div class="results-title">Rough monthly footprint</div>
+            <div class="carbon-value" id="carbonValue">0 kg CO₂</div>
+            <div class="equivalents-grid">
+              <div class="equivalent-card"><h5>Energy use</h5><p id="energyVal">0 kWh</p></div>
+              <div class="equivalent-card"><h5>E-waste impact</h5><p id="ewasteVal">Low</p></div>
+            </div>
+            <p class="calc-disclaimer">Illustrative estimate for awareness, not a precise scientific measurement.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ SECTION -->
+<section class="section" id="quiz">
+  <div class="wrap reveal">
+    <h4 class="eyebrow">Review</h4>
+    <h2>Test Your Knowledge</h2>
+    <p style="margin-bottom:30px;">Let's see what you've learned about digital rights and internet principles in Nepal.</p>
+    
+    <div class="quiz-container" id="quizContainer">
+      
+      <!-- Q1 -->
+      <div class="quiz-question active">
+        <h3>1. How does internet access differ across demographics in Nepal?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="false">A. Access is equal across all provinces and genders.</button>
+          <button class="btn-quiz" data-correct="false">B. Men and women have equal internet usage rates.</button>
+          <button class="btn-quiz" data-correct="true">C. Rural women have significantly lower internet access than urban men.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">Rural women's internet access drops as low as 10%, highlighting the severe intersection of geographic and gender disparities.</div>
+        </div>
+      </div>
+      
+      <!-- Q2 -->
+      <div class="quiz-question">
+        <h3>2. How do major tech platforms primarily rank search results?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="false">A. Based strictly on neutral relevance to the user's needs.</button>
+          <button class="btn-quiz" data-correct="true">B. Through an ad-driven model where visibility is often decided by economics.</button>
+          <button class="btn-quiz" data-correct="false">C. By prioritizing community-built and volunteer directories.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">The internet is not a neutral marketplace; platforms rank paid results higher, prioritizing advertisers over free, community-built resources.</div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="quiz-question">
+        <h3>3. What do apps often ask for during installation?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="true">A. Blanket permissions to data like location, camera, and contacts.</button>
+          <button class="btn-quiz" data-correct="false">B. Temporary, specific consent that expires daily.</button>
+          <button class="btn-quiz" data-correct="false">C. Only the exact permissions necessary for basic app function.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">Terms and Conditions often bundle invasive permissions (like constant location tracking) into a single tap, lacking meaningful and reversible consent.</div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="quiz-question">
+        <h3>4. What does the shift from 'consumer' to 'creator' online primarily require?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="false">A. Just a reliable and fast internet connection.</button>
+          <button class="btn-quiz" data-correct="true">B. Confidence, skills, and time—resources that are not shared equally.</button>
+          <button class="btn-quiz" data-correct="false">C. Simply creating an account on a major social media platform.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">Creating requires resources like time and digital skills, which are heavily impacted by gender, class, and geography.</div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="quiz-question">
+        <h3>5. How does online violence affect different demographic groups?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="false">A. It is distributed equally among all internet users.</button>
+          <button class="btn-quiz" data-correct="false">B. It primarily affects men living in major urban centers.</button>
+          <button class="btn-quiz" data-correct="true">C. Marginalised voices, such as LGBTIQA+ people, face near-universal abuse.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">Online violence isn't equal. Platforms that fail to protect marginalised voices are not neutral; they are complicit in silencing them.</div>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="quiz-question">
+        <h3>6. What is a hidden environmental cost of using the internet?</h3>
+        <div class="quiz-options">
+          <button class="btn-quiz" data-correct="true">A. Physical servers, data transmission, and devices consume massive amounts of energy and generate carbon emissions.</button>
+          <button class="btn-quiz" data-correct="false">B. There is no environmental cost because the internet is entirely digital and 'in the cloud'.</button>
+          <button class="btn-quiz" data-correct="false">C. Only the electricity required to charge your phone battery once a day.</button>
+        </div>
+        <div class="quiz-feedback">
+          <div class="q-status"></div>
+          <div class="q-explanation">The "cloud" is physical. Every hour of streaming and every device manufactured carries a significant real-world carbon footprint.</div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="quiz-results" id="quizResults">
+        <h3>Quiz Complete!</h3>
+        <div class="quiz-score"><span id="qScoreVal">0</span>/6</div>
+        <p>Great job taking the time to understand digital rights.</p>
+        <button class="btn btn-pink" id="quizRestartBtn" style="margin-top:20px;">Retake Quiz</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- REFERENCES -->
+<section class="section alt" id="references">
+  <div class="wrap reveal">
+    <p class="tag">Where this comes from</p>
+    <h2>References</h2>
+    <div style="margin-top:30px;">
+      <div class="ref-item" id="ref-1">
+        <span class="ref-num">1.</span>
+        <span>Association for Progressive Communications (APC) <a href="https://feministinternet.org" target="_blank" rel="noopener">Feminist Principles of the Internet</a>, the framework this site is built around.</span>
+      </div>
+      <div class="ref-item" id="ref-2">
+        <span class="ref-num">2.</span>
+        <span>Body &amp; Data Nepal <a href="https://bodyanddata.org/identities-experiencing-internet-nepal-survey-report/" target="_blank" rel="noopener">Identities Experiencing the Internet: Nepal Survey Report</a>. Source for the Expression section's harassment statistics.</span>
+      </div>
+      <div class="ref-item" id="ref-3">
+        <span class="ref-num">3.</span>
+        <span>Kathmandu Post <a href="https://kathmandupost.com/columns/2025/03/07/closing-the-digital-gender-gap" target="_blank" rel="noopener">"Closing the digital gender gap"</a> (March 2025). Source for phone ownership, internet use, and regional access figures.</span>
+      </div>
+      <div class="ref-item" id="ref-4">
+        <span class="ref-num">4.</span>
+        <span>Nepali Telecom, citing DataReportal <a href="https://www.nepalitelecom.com/2026/05/only-56-percent-use-intermet-in-nepal-sharp-reality-vs-expection-in-datareportal-figures.html" target="_blank" rel="noopener">"Only 56 percent use internet in Nepal"</a> (2026). Source for national access and social-media gender split.</span>
+      </div>
+      <div class="ref-item" id="ref-5">
+        <span class="ref-num">5.</span>
+        <span>Nepal Telecommunications Authority monthly MIS reports. Map speeds and ISP lists are illustrative approximations based on general patterns, not pulled live from this source.</span>
+      </div>
+      <div class="ref-item" id="ref-6">
+        <span class="ref-num">6.</span>
+        <span>Algorithmic Justice League <a href="https://www.ajl.org" target="_blank" rel="noopener">ajl.org</a>. Research on facial recognition bias, accuracy disparities across gender, race, and skin tone.</span>
+      </div>
+      <div class="ref-item" id="ref-7">
+        <span class="ref-num">7.</span>
+        <span>International Energy Agency (IEA) <a href="https://www.iea.org/reports/data-centres-and-data-transmission-networks" target="_blank" rel="noopener">Data Centres and Data Transmission Networks</a> (2023). Source for global data centre energy consumption figures.</span>
+      </div>
+      <div class="ref-item" id="ref-8">
+        <span class="ref-num">8.</span>
+        <span>The Shift Project <a href="https://theshiftproject.org/en/lean-ict-our-new-report/" target="_blank" rel="noopener">Lean ICT: Towards Digital Sobriety</a> (2019). Source for streaming CO₂ estimates and device embodied carbon figures.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Source: <a href="https://feministinternet.org" target="_blank">feministinternet.org</a> · Association for Progressive Communication (APC)</p>
+  <p>Translation &amp; Publication: Body &amp; Data Nepal</p>
+  <p>This website is created for educational purposes.</p>
+</footer>
+
+<script>
+(function(){
+
+/* PROGRESS BAR */
+const progressBar = document.getElementById('progressBar');
+function updateProgress(){
+  const h = document.documentElement;
+  const scrolled = h.scrollTop || document.body.scrollTop;
+  const max = h.scrollHeight - h.clientHeight;
+  const pct = (max > 0 ? (scrolled / max * 100) : 0);
+  progressBar.style.width = pct + '%';
+}
+window.addEventListener('scroll', updateProgress, { passive: true });
+updateProgress();
+
+/* REVEAL ON SCROLL */
+const revealEls = document.querySelectorAll('.reveal');
+const rio = new IntersectionObserver(function(entries){
+  entries.forEach(function(en){ if (en.isIntersecting) en.target.classList.add('on'); });
+}, { threshold: 0.2 });
+revealEls.forEach(function(el){ rio.observe(el); });
+
+/* HERO HORIZONTAL SCROLL */
+(function(){
+  const heroSlides = document.getElementById('hero-slides');
+  if (!heroSlides) return;
+  let slideProgress = 0;
+  let touchStartY = 0;
+  function updateSlideTransform(){ heroSlides.style.transform = 'translateX(-' + (slideProgress * 50) + '%)'; }
+  function handleScrollAttempt(deltaY, e){
+    const isAtTop = window.scrollY <= 5;
+    if (isAtTop) {
+      if (deltaY > 0 && slideProgress < 1) { e.preventDefault(); slideProgress = Math.min(1, slideProgress + 0.05); updateSlideTransform(); return true; }
+      else if (deltaY < 0 && slideProgress > 0) { e.preventDefault(); slideProgress = Math.max(0, slideProgress - 0.05); updateSlideTransform(); return true; }
+    }
+    return false;
+  }
+  window.addEventListener('wheel', function(e){ handleScrollAttempt(e.deltaY, e); }, { passive: false });
+  window.addEventListener('touchstart', function(e){ touchStartY = e.touches[0].clientY; }, { passive: true });
+  window.addEventListener('touchmove', function(e){
+    const deltaY = touchStartY - e.touches[0].clientY;
+    if (handleScrollAttempt(deltaY, e)) touchStartY = e.touches[0].clientY;
+  }, { passive: false });
+  updateSlideTransform();
+})();
+
+/* COUNT-UP NUMBERS (global) */
+function animateCount(el){
+  if (el.dataset.animated && !el.closest('#analyticsTrack')) return;
+  el.dataset.animated = '1';
+  const target = parseFloat(el.dataset.countTo);
+  const suffix = el.dataset.suffix || '';
+  const decimals = (el.dataset.countTo.split('.')[1] || '').length;
+  const duration = 1300;
+  const start = performance.now();
+  function tick(now){
+    const progress = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = (target * eased).toFixed(decimals) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = target.toFixed(decimals) + suffix;
+  }
+  requestAnimationFrame(tick);
+}
+const numObserver = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if (entry.isIntersecting) animateCount(entry.target);
+  });
+}, { threshold: 0.6 });
+document.querySelectorAll('[data-count-to]').forEach(function(el){
+  // Analytics slides are handled by the scroll-driven Access logic skip them here
+  if (!el.closest('#analyticsTrack')) numObserver.observe(el);
+});
+
+/* ACCESS: scroll-driven sticky analytics + reveal principle content */
+(function(){
+  const scroller = document.getElementById('accessScroller');
+  const track = document.getElementById('analyticsTrack');
+  const principleContent = document.getElementById('accessPrincipleContent');
+  if (!scroller || !track) return;
+
+  const slides = Array.from(track.querySelectorAll('.analytics-slide'));
+  let currentIdx = -1;
+  let principleRevealed = false;
+
+  // Activate first slide immediately
+  slides[0].classList.add('active');
+  currentIdx = 0;
+  slides[0].querySelectorAll('[data-count-to]').forEach(function(el){
+    el.textContent = '0' + (el.dataset.suffix || '');
+    delete el.dataset.animated;
+    animateCount(el);
+  });
+  slides[0].querySelectorAll('.analytics-bar-fill').forEach(function(el){
+    el.style.width = '0%';
+    setTimeout(function(){ el.style.width = el.dataset.width; }, 50);
+  });
+
+  function setSlide(idx){
+    if (idx === currentIdx) return;
+    const prev = slides[currentIdx];
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(function(){ prev.classList.remove('exit'); }, 600);
+    slides[idx].classList.add('active');
+    currentIdx = idx;
+    // Reset and re-animate numbers from 0 every time this slide appears
+    slides[idx].querySelectorAll('[data-count-to]').forEach(function(el){
+      el.textContent = '0' + (el.dataset.suffix || '');
+      delete el.dataset.animated;
+      animateCount(el);
+    });
+    slides[idx].querySelectorAll('.analytics-bar-fill').forEach(function(el){
+      el.style.width = '0%';
+      setTimeout(function(){ el.style.width = el.dataset.width; }, 50);
+    });
+  }
+
+  function onScroll(){
+    const rect = scroller.getBoundingClientRect();
+    if (rect.top > 0 || rect.bottom < 0) return;
+    const scrolled = -rect.top;
+    const total = scroller.clientHeight - window.innerHeight;
+    const progress = Math.min(1, Math.max(0, scrolled / total));
+    const idx = Math.min(slides.length - 1, Math.floor(progress * slides.length));
+    setSlide(idx);
+
+    // Reveal principle content only after user has scrolled through all analytics slides
+    if (progress >= 0.98 && !principleRevealed) {
+      principleRevealed = true;
+      principleContent.classList.add('revealed');
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ACCESS: Leaflet map */
+(function(){
+  const mapEl = document.getElementById('leaflet-map');
+  if (!mapEl || typeof L === 'undefined') return;
+  const map = L.map('leaflet-map', { scrollWheelZoom: false }).setView([28.3949, 84.1240], 7);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 12
+  }).addTo(map);
+  const provinces = [
+    { province:'Koshi Province', city:'Biratnagar', lat:26.4525, lng:87.2718, speed:'45 Mbps', isp:'WorldLink, Vianet, Nepal Telecom', status:'Moderate connectivity', tier:'medium' },
+    { province:'Madhesh Province', city:'Janakpur', lat:26.7288, lng:85.9266, speed:'20 Mbps', isp:'Nepal Telecom, local ISPs', status:'Lowest provincial access (50%)', tier:'slow' },
+    { province:'Bagmati Province', city:'Kathmandu', lat:27.7172, lng:85.3240, speed:'95 Mbps', isp:'WorldLink, Vianet, CG Net, DishHome Fibre, NT Fiber', status:'High-speed fibre coverage', tier:'fast' },
+    { province:'Gandaki Province', city:'Pokhara', lat:28.2096, lng:83.9856, speed:'55 Mbps', isp:'WorldLink, Vianet, Nepal Telecom', status:'Good urban coverage', tier:'fast' },
+    { province:'Lumbini Province', city:'Nepalgunj', lat:28.0500, lng:81.6167, speed:'25 Mbps', isp:'Subisu, Nepal Telecom', status:'Moderate connectivity', tier:'medium' },
+    { province:'Karnali Province', city:'Surkhet', lat:28.6000, lng:81.6167, speed:'8 Mbps', isp:'Nepal Telecom only', status:'Low coverage, terrain-limited', tier:'slow' },
+    { province:'Sudurpashchim Province', city:'Dhangadhi', lat:28.6833, lng:80.6000, speed:'18 Mbps', isp:'Nepal Telecom, ClassicTech', status:'Moderate, limited fibre', tier:'medium' }
+  ];
+  const pinColors = { fast:'#1F9254', medium:'#C98A12', slow:'#D1393C' };
+  let activeMarker = null;
+  provinces.forEach(function(p){
+    const color = pinColors[p.tier];
+    const icon = L.divIcon({ html:'<div style="width:18px;height:18px;background:'+color+';border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.3);"></div>', className:'', iconSize:[18,18], iconAnchor:[9,18] });
+    const marker = L.marker([p.lat, p.lng], { icon: icon }).addTo(map);
+    const popup = '<div class="speed-popup"><span class="p-status '+p.tier+'">'+p.status+'</span><div class="p-city">'+p.city+'</div><div class="p-province">'+p.province+'</div><div class="p-speed">'+p.speed+'</div><div class="p-isp">'+p.isp+'</div></div>';
+    marker.bindPopup(popup, { closeButton: false, offset: [0, -16] });
+    marker.on('click', function(){ 
+      if(activeMarker && activeMarker !== this) activeMarker.closePopup();
+      this.openPopup(); 
+      activeMarker = this;
+    });
+    if (p.province === 'Bagmati Province') {
+      activeMarker = marker;
+      setTimeout(function(){ marker.openPopup(); }, 500);
+    }
+  });
+})();
+
+/* MOVEMENTS: consumer/creator slider */
+(function(){
+  const slider = document.getElementById('creatorSlider');
+  if (!slider) return;
+  const splitConsumer = document.getElementById('splitConsumer');
+  const splitCreator = document.getElementById('splitCreator');
+  const codeEditor = document.getElementById('codeEditor');
+  const splitScreen = document.getElementById('splitScreen');
+  const codeLines = 'console.log("Hello World");\nconst movement = "Digital Rights";\nshareKnowledge();\nbuildCommunity();';
+  slider.addEventListener('input', function(){
+    const ratio = parseInt(this.value, 10) / 100;
+    splitConsumer.style.flex = Math.max(0.05, 1 - ratio);
+    splitCreator.style.flex = ratio;
+    codeEditor.textContent = codeLines.substring(0, Math.round(ratio * codeLines.length));
+  });
+  slider.dispatchEvent(new Event('input'));
+})();
+
+/* ECONOMY: search experience */
+(function(){
+  const searchInput = document.getElementById('econSearchInput');
+  const resultBox = document.getElementById('searchResultBox');
+  if (!searchInput) return;
+  const results = {
+    health: { title:'Women\u2019s Health Resources', body:'Clinics, hotlines, and verified health guidance exist online but ad-driven platforms often rank paid results above them, and data brokers profit from every search.' },
+    lgbtq: { title:'LGBTQ Rights Information', body:'Community-built directories exist, built largely by unpaid volunteers, while the platforms hosting them monetise the attention those same communities generate.' },
+    legal: { title:'Legal Support Services', body:'Free legal aid exists, but it competes for visibility against paid legal-services ads the same search, two very different economics underneath it.' }
+  };
+
+  searchInput.addEventListener('focus', function(){ this.style.borderColor = 'var(--pink)'; });
+  searchInput.addEventListener('blur', function(){ this.style.borderColor = 'var(--border)'; });
+
+  searchInput.addEventListener('input', function(){
+    const val = this.value.toLowerCase().trim();
+    let found = false;
+    for (let key in results) {
+      if (val.includes(key)) {
+        found = true;
+        const data = results[key];
+        resultBox.innerHTML = '<div class="search-result" id="srCard"><h5>'+data.title+'</h5><p>'+data.body+'</p></div>';
+        const card = document.getElementById('srCard');
+        requestAnimationFrame(function(){ setTimeout(function(){ card.classList.add('revealed'); }, 50); });
+        break;
+      }
+    }
+    if(!found && val.length > 0) {
+      // Dynamic response for unmapped keywords
+      let dynamicBody = 'Sponsored: Top 10 results for "'+val+'". The data generated from you searching for "'+val+'" has been logged and targeted by ad networks. The results you see here are ranked by whoever paid the most to reach you.';
+      resultBox.innerHTML = '<div class="search-result" id="srCard"><h5>Results for: '+val+'</h5><p>'+dynamicBody+'</p></div>';
+      const card = document.getElementById('srCard');
+      requestAnimationFrame(function(){ setTimeout(function(){ card.classList.add('revealed'); }, 50); });
+    } else if(!found && val.length === 0) {
+      resultBox.innerHTML = '<p class="search-placeholder">Type a topic above to see what comes up.</p>';
+    }
+  });
+})();
+
+/* EXPRESSION: phone mockup comments */
+(function(){
+  const commentsBox = document.getElementById('instaComments');
+  if (!commentsBox) return;
+  const comments = [
+    { text:'Proud of you for posting this!', harm:false },
+    { text:'We see you. Stay strong.', harm:false },
+    { text:'Go back to where you belong.', harm:true },
+    { text:'Who asked you? Disgusting.', harm:true },
+    { text:'Amazing. Keep going.', harm:false },
+    { text:'I know where you live.', harm:true }
+  ];
+  let started = false;
+  const eio = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting && !started) {
+        started = true;
+        comments.forEach(function(c, i){
+          setTimeout(function(){
+            const row = document.createElement('div');
+            row.className = 'insta-comment' + (c.harm ? ' harm' : '');
+            let buttonsHtml = '';
+            if (c.harm) {
+              buttonsHtml = '<div class="ic-actions"><button>Report</button><button>Delete</button><button>Block</button></div>';
+            }
+            row.innerHTML = '<div class="ic-avatar"></div><div class="ic-content"><div class="ic-bubble">'+c.text+'</div>'+buttonsHtml+'</div>';
+            commentsBox.appendChild(row);
+            if (c.harm) {
+              row.querySelectorAll('button').forEach(function(btn){
+                btn.addEventListener('click', function(){
+                  const action = this.textContent;
+                  row.querySelector('.ic-content').innerHTML = '<div style="font-size:0.7rem; color:var(--mist); font-style:italic; padding:6px 0;">Comment ' + action.toLowerCase() + 'd.</div>';
+                  row.classList.remove('harm');
+                  row.querySelector('.ic-avatar').style.opacity = '0.3';
+                });
+              });
+            }
+            requestAnimationFrame(function(){ requestAnimationFrame(function(){ row.classList.add('show'); }); });
+          }, 600 + i * 800);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  const exprSection = document.getElementById('expression');
+  if (exprSection) eio.observe(exprSection);
+})();
+
+/* EMBODIMENT: T&C simulation */
+(function(){
+  const stage1 = document.getElementById('tc-stage-1');
+  const stage2 = document.getElementById('tc-stage-2');
+  const stage3 = document.getElementById('tc-stage-3');
+  const tcDoc = document.getElementById('tcDoc');
+  if (!stage1) return;
+  function showStage(stage){ [stage1, stage2, stage3].forEach(function(s){ s.classList.toggle('active', s === stage); }); }
+  document.getElementById('tcAcceptBtn').addEventListener('click', function(){ showStage(stage3); });
+  document.getElementById('tcAcceptBtn2').addEventListener('click', function(){ showStage(stage3); });
+  document.getElementById('tcBackBtn').addEventListener('click', function(){ showStage(stage1); });
+  document.getElementById('tcReadMoreBtn').addEventListener('click', function(){
+    showStage(stage2);
+    const clauses = tcDoc.querySelectorAll('.tc-clause');
+    tcDoc.addEventListener('scroll', function(){
+      clauses.forEach(function(c){
+        if (c.offsetTop < tcDoc.scrollTop + tcDoc.clientHeight - 10) c.classList.add('visible');
+      });
+    });
+    tcDoc.dispatchEvent(new Event('scroll'));
+  });
+})();
+
+/* ENVIRONMENT: carbon calculator */
+(function(){
+  const streamSlider = document.getElementById('streamSlider');
+  if (!streamSlider) return;
+  const cloudSlider = document.getElementById('cloudSlider');
+  const deviceSlider = document.getElementById('deviceSlider');
+  function recalc(){
+    const hours = parseFloat(streamSlider.value);
+    const cloud = parseFloat(cloudSlider.value);
+    const deviceYears = parseFloat(deviceSlider.value);
+    document.getElementById('streamVal').textContent = hours + ' hrs/week';
+    document.getElementById('cloudVal').textContent = cloud + ' GB';
+    document.getElementById('deviceVal').textContent = deviceYears + (deviceYears === 1 ? ' year' : ' years');
+    const totalCO2 = (hours * 4.3 * 0.36) + (cloud * 0.02) + (60 / deviceYears);
+    document.getElementById('carbonValue').textContent = totalCO2.toFixed(1) + ' kg CO\u2082';
+    document.getElementById('energyVal').textContent = (totalCO2 / 0.45).toFixed(0) + ' kWh';
+    document.getElementById('ewasteVal').textContent = deviceYears <= 1.5 ? 'High' : (deviceYears <= 3 ? 'Moderate' : 'Low');
+  }
+  [streamSlider, cloudSlider, deviceSlider].forEach(function(s){ s.addEventListener('input', recalc); });
+  recalc();
+})();
+
+})();
+
+/* QUIZ LOGIC */
+(function(){
+  const container = document.getElementById('quizContainer');
+  if (!container) return;
+  const questions = container.querySelectorAll('.quiz-question');
+  const results = document.getElementById('quizResults');
+  const scoreVal = document.getElementById('qScoreVal');
+  const restartBtn = document.getElementById('quizRestartBtn');
+  
+  let currentIdx = 0;
+  let score = 0;
+
+  function showQuestion(idx) {
+    questions.forEach(function(q, i) {
+      if (i === idx) q.classList.add('active');
+      else q.classList.remove('active');
+    });
+    results.classList.remove('active');
+  }
+
+  questions.forEach(function(q, idx) {
+    const btns = q.querySelectorAll('.btn-quiz');
+    const feedback = q.querySelector('.quiz-feedback');
+    const status = q.querySelector('.q-status');
+    
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (btn.disabled) return;
+        btns.forEach(function(b){ b.disabled = true; b.style.cursor = 'default'; });
+        
+        const isCorrect = this.dataset.correct === "true";
+        if (isCorrect) score++;
+        
+        this.classList.add(isCorrect ? 'correct' : 'incorrect');
+        
+        status.textContent = isCorrect ? "Correct" : "Incorrect";
+        status.className = "q-status " + (isCorrect ? "correct-text" : "incorrect-text");
+        feedback.classList.add('show');
+        
+        if (!isCorrect) {
+          btns.forEach(function(b){
+            if (b.dataset.correct === "true") b.classList.add('correct');
+          });
+        }
+        
+        setTimeout(function(){
+          if (idx + 1 < questions.length) {
+            currentIdx++;
+            showQuestion(currentIdx);
+          } else {
+            questions.forEach(function(q) { q.classList.remove('active'); });
+            scoreVal.textContent = score;
+            results.classList.add('active');
+          }
+        }, 4500);
+      });
+    });
+  });
+
+  if (restartBtn) {
+    restartBtn.addEventListener('click', function(){
+      score = 0;
+      currentIdx = 0;
+      questions.forEach(function(q) {
+        const btns = q.querySelectorAll('.btn-quiz');
+        const feedback = q.querySelector('.quiz-feedback');
+        btns.forEach(function(b) {
+          b.disabled = false;
+          b.style.cursor = 'pointer';
+          b.classList.remove('correct', 'incorrect');
+        });
+        feedback.classList.remove('show');
+      });
+      showQuestion(0);
+    });
+  }
+})();
+
+/* GLOBAL HOVER HINTS */
+(function(){
+  const globalHint = document.createElement('div');
+  globalHint.style.cssText = 'position:fixed; pointer-events:none; z-index:9999; font-family:"DM Mono",monospace; font-size:0.7rem; color:var(--ink); background:var(--white); padding:4px 10px; border:1px solid var(--border); border-radius:4px; opacity:0; transition:opacity 0.15s, transform 0.1s linear; box-shadow:0 4px 12px rgba(0,0,0,0.05); text-transform:uppercase; letter-spacing:0.05em; transform:translateY(15px);';
+  document.body.appendChild(globalHint);
+
+  document.querySelectorAll('.interactive-parent').forEach(function(el){
+    el.addEventListener('mousemove', function(e){
+      globalHint.textContent = this.dataset.hint || 'Interact';
+      globalHint.style.left = (e.clientX + 15) + 'px';
+      globalHint.style.top = (e.clientY + 15) + 'px';
+      globalHint.style.opacity = '1';
+      globalHint.style.transform = 'translateY(0)';
+    });
+    el.addEventListener('mouseleave', function(){
+      globalHint.style.opacity = '0';
+      globalHint.style.transform = 'translateY(15px)';
+    });
+  });
+})();
+</script>
+</body>
+</html>
