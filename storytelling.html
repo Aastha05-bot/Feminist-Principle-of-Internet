@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet.js for OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <title>Storytelling</title>
+    <style>
+        /* Hero horizontal scroll override */
+        .hero-slider {
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slides {
+            display: flex;
+            flex-direction: row;
+            width: 200%;
+            height: 100%;
+            will-change: transform;
+        }
+
+        .slide {
+            position: relative;
+            inset: unset;
+            flex: 0 0 50%;
+            width: 50%;
+            height: 100%;
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            transition: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+
+        /* hide old dots */
+        .slider-dots {
+            display: none !important;
+        }
+
+        /* Leaflet map container */
+        #leaflet-map {
+            width: 100%;
+            height: 380px;
+            border-radius: 12px;
+            z-index: 1;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            padding: 0;
+        }
+
+        .speed-popup {
+            padding: 14px 18px;
+            min-width: 160px;
+            font-family: "Varela Round", sans-serif;
+        }
+
+        .speed-popup .popup-city {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .speed-popup .popup-isp {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .speed-popup .popup-speed {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .speed-popup .popup-speed.fast {
+            color: #10b981;
+        }
+
+        .speed-popup .popup-speed.medium {
+            color: #f59e0b;
+        }
+
+        .speed-popup .popup-speed.slow {
+            color: #ef4444;
+        }
+
+        /* Override toggle defaults: unchecked=green, checked=red */
+        input:checked+.slider {
+            background-color: #ef4444 !important;
+        }
+
+        input:not(:checked)+.slider {
+            background-color: #10b981 !important;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        input:not(:checked)+.slider:before {
+            transform: translateX(0px);
+        }
+
+        /* Slide split styling */
+        .slide-split {
+            display: flex !important;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px clamp(24px, 8vw, 80px);
+            background: #0f172a; /* Nice premium dark background */
+            gap: 40px;
+        }
+
+        .hero-split-left {
+            flex: 1;
+            max-width: 55%;
+        }
+
+        .hero-split-right {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 45%;
+        }
+
+        .hero-split-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Environmental widget styling */
+        .carbon-calc-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+            text-align: left;
+        }
+
+        .carbon-calc-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .calc-row {
+            margin-bottom: 18px;
+        }
+
+        .calc-label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .calc-slider {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .calc-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #10b981;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        .calc-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .carbon-results {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 20px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .results-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .carbon-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #10b981;
+            margin-bottom: 12px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .equivalents-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .equivalent-card {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.03);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .eq-icon {
+            font-size: 1.5rem;
+        }
+
+        .eq-info h5 {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .eq-info p {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 2px 0 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!--Dummy Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <img src="bnd.png" alt="Logo" class="logo-image" height="50" width="200">
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="active">About <span class="dropdown-icon">▾</span></a></li>
+                <li><a href="#">Programmes <span class="dropdown-icon">▾</span></a></li>
+                <li><a href="#">Publications</a></li>
+                <li><a href="#">MM</a></li>
+                <li><a href="#">Contact Us</a></li>
+                <li class="lang-item">
+                    <a href="#" class="lang-link">
+                        <img src="https://flagcdn.com/w40/us.png" alt="US flag" class="flag-icon">
+                        <span>English</span>
+                    </a>
+                </li>
+                <li class="lang-item">
+                    <a href="#" class="lang-link">
+                        <img src="https://flagcdn.com/w40/np.png" alt="Nepal flag" class="flag-icon">
+                        <span>Nepali</span>
+                    </a>
+                </li>
+                <li class="nav-search">
+                    <a href="#" aria-label="Search">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <section class="landing-page" id="landing-section">
+        <div class="hero-slider" id="hero-slider">
+            <div class="slides" id="hero-slides">
+                <div class="slide active slide-full-bg">
+                    <div class="hero-content">
+                        <img src="header.jpg" alt="Storytelling Image 1" class="hero-image">
+                    </div>
+                    <div class="hero-text hero-text-overlay">
+                        <h1>A Feminist <br> Internet </h1>
+                        <p class="hero-tagline">An internet where nobody is left behind.</p>
+                    </div>
+                </div>
+
+                <div class="slide slide-split" style="background-color: #ffffff;">
+                    <div class="hero-split-left">
+                        <div class="hero-text hero-text-left slide-3-text" style="background-color: #fafbfc; padding: 20px; border-radius: 12px;">
+                            <h1 style="color: #151515; text-align: left;">
+                                You Have A Phone,<br>
+                                You Have Internet,<br>
+                                <span class="pink" style="color: #ec4899;">But are you truly free online?</span>
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="hero-split-right">
+                        <img src="phone.png" alt="Phone Mockup" class="hero-split-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="defination reveal" id="defination" data-section="0">
+        <div class="Section-feminist-internet">
+            <h2>What is Feminist Internet</h2>
+            <p>A place where everyone especially, Queer, women, PWD and LGBTQ+ individuals can access, use, create, and
+                express themselves freely, safely, and equally.</p>
+        </div>
+
+        <div class="tab">
+            <button class="tab-item active" type="button" data-tab="1">Control &amp; Agency</button>
+            <button class="tab-item" type="button" data-tab="2">Safety &amp; Security</button>
+            <button class="tab-item" type="button" data-tab="3">Access &amp; Inclusion</button>
+        </div>
+
+        <div class="tab-panels">
+            <div class="tab-panel active" data-panel="1">
+                <p>People should be able to make decisions about how they use technology, what data is collected, and
+                    how their voices are represented online.</p>
+            </div>
+            <div class="tab-panel" data-panel="2">
+                <p>Digital spaces should protect users from harassment, surveillance, and abuse while ensuring privacy,
+                    consent, and trust.</p>
+            </div>
+            <div class="tab-panel" data-panel="3">
+                <p>A feminist internet includes affordable access, diverse representation, and tools that work for
+                    people across languages, abilities, and identities.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="principle-section reveal" id="principle-1" data-section="1">
+        <div class="principle-layout principle-layout-wide">
+            <div class="principle-right">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 1: Access</h4>
+                    <h2>Can everyone get online?</h2>
+                    <p>The internet connects people to opportunities, education, healthcare, and communities. Yet not
+                        everyone experiences the internet in the same way.
+
+                        Where a person lives often determines the quality of their connection. While urban areas may
+                        enjoy fast and reliable internet, many rural communities continue to face slow speeds, unstable
+                        networks, and limited digital resources.
+
+                        Access is not simply about being online. It is about having equal opportunities to participate
+                        in the digital world.</p>
+                </div>
+            </div>
+            <div class="principle-left">
+                <!-- City vs Rural Slider -->
+                <!-- Interactive Map Box -->
+                <div class="interactive-map-box principle-panel" id="interactive-map-box">
+                    <p class="map-instruction">Hover over a location pin to view its internet speed.</p>
+                    <div id="leaflet-map"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Principle 2 Section: Movements -->
+    <section class="principle-section reveal" id="principle-2" data-section="2">
+        <div class="principle-layout principle-layout-wide">
+            <div class="principle-left">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 2: Movements</h4>
+                    <h2>Can communities create change together?</h2>
+                    <p>Every day, digital platforms connect voices across boundaries. Movements grow when people move beyond consumption and use digital technology to organize, build networks, and create shared change together.
+
+                    A feminist internet is a powerful tool for social change, encouraging everyone to become builders, innovators, and active participants rather than just passive consumers.</p>
+                </div>
+            </div>
+            <div class="principle-right">
+                <!-- Consumer vs Creator Split Screen -->
+                <div class="creator-split-box principle-panel" id="creator-split-box">
+                    <div class="split-label-row">
+                        <span class="split-label-consumer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            </svg> Consumer</span>
+                        <span class="split-label-creator"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg> Creator</span>
+                    </div>
+                    <input type="range" id="creator-slider" class="creator-range" min="0" max="100" value="0">
+
+                    <div class="split-screen-container" id="split-screen">
+                        <!-- Left: Social Media Consumer -->
+                        <div class="split-side split-consumer" id="split-consumer">
+                            <div class="social-feed">
+                                <div class="feed-post">
+                                    <div class="feed-avatar"></div>
+                                    <div class="feed-content">
+                                        <div class="feed-name">@user123</div>
+                                        <div class="feed-text">Just scrolling... <svg viewBox="0 0 24 24" width="16"
+                                                height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="M8 9h.01M16 9h.01M8 15h8"></path>
+                                            </svg></div>
+                                        <div class="feed-actions"><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                    </path>
+                                                </svg> 482</span><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                                    </path>
+                                                </svg> 12</span></div>
+                                    </div>
+                                </div>
+                                <div class="feed-post">
+                                    <div class="feed-avatar av2"></div>
+                                    <div class="feed-content">
+                                        <div class="feed-name">@scrolllife</div>
+                                        <div class="feed-text">Another day, another feed... <svg viewBox="0 0 24 24"
+                                                width="16" height="16" fill="none" stroke="currentColor"
+                                                stroke-width="2">
+                                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                            </svg></div>
+                                        <div class="feed-actions"><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                    </path>
+                                                </svg> 1.2k</span><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                                    </path>
+                                                </svg> 45</span></div>
+                                    </div>
+                                </div>
+                                <div class="feed-post">
+                                    <div class="feed-avatar av3"></div>
+                                    <div class="feed-content">
+                                        <div class="feed-name">@passive_user</div>
+                                        <div class="feed-text">Liking posts, not creating...</div>
+                                        <div class="feed-actions"><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                    </path>
+                                                </svg> 230</span><span><svg viewBox="0 0 24 24" width="14" height="14"
+                                                    fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                                    </path>
+                                                </svg> 8</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="split-divider" id="split-divider"></div>
+
+                        <!-- Right: Website Builder Creator -->
+                        <div class="split-side split-creator" id="split-creator">
+                            <div class="creator-content">
+                                <div class="code-editor" id="code-editor">
+                                    <div class="code-editor-header">
+                                        <span class="dot red"></span><span class="dot yellow"></span><span
+                                            class="dot green"></span>
+                                        <span class="editor-title">my-site.html</span>
+                                    </div>
+                                    <div class="code-body" id="code-body"></div>
+                                </div>
+                                <div class="wireframe-preview" id="wireframe-preview">
+                                    <div class="wire-header" id="wire-header"></div>
+                                    <div class="wire-row">
+                                        <div class="wire-block" id="wire-b1"></div>
+                                        <div class="wire-block" id="wire-b2"></div>
+                                    </div>
+                                    <div class="wire-footer" id="wire-footer"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Community Network (shown after max creation) -->
+                    <div class="community-network hidden" id="community-network">
+                        <svg viewBox="0 0 300 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="150" y1="60" x2="50" y2="20" stroke="#3b82f6" stroke-width="2" />
+                            <line x1="150" y1="60" x2="250" y2="20" stroke="#3b82f6" stroke-width="2" />
+                            <line x1="150" y1="60" x2="50" y2="100" stroke="#3b82f6" stroke-width="2" />
+                            <line x1="150" y1="60" x2="250" y2="100" stroke="#3b82f6" stroke-width="2" />
+                            <line x1="50" y1="20" x2="250" y2="100" stroke="#3b82f6" stroke-width="1"
+                                stroke-dasharray="4,4" />
+                            <line x1="250" y1="20" x2="50" y2="100" stroke="#3b82f6" stroke-width="1"
+                                stroke-dasharray="4,4" />
+                            <circle cx="150" cy="60" r="14" fill="#3b82f6" />
+                            <circle cx="150" cy="60" r="6" fill="none" stroke="white" stroke-width="1.5" />
+                            <path d="M150 54v12 M144 60h12" stroke="white" stroke-width="1.5" />
+                            <circle cx="50" cy="20" r="10" fill="#60a5fa" />
+                            <circle cx="50" cy="18" r="3" fill="white" />
+                            <path d="M46 25a4 4 0 0 1 8 0" fill="white" />
+                            <circle cx="250" cy="20" r="10" fill="#60a5fa" />
+                            <circle cx="250" cy="18" r="3" fill="white" />
+                            <path d="M246 25a4 4 0 0 1 8 0" fill="white" />
+                            <circle cx="50" cy="100" r="10" fill="#60a5fa" />
+                            <path d="M46 96h8v2h-8z M50 96v8" fill="white" />
+                            <circle cx="250" cy="100" r="10" fill="#60a5fa" />
+                            <circle cx="250" cy="100" r="4" fill="none" stroke="white" stroke-width="1.5" />
+                        </svg>
+                        <p class="community-msg">Your site becomes a community for everyone! <svg viewBox="0 0 24 24"
+                                width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                                style="vertical-align: middle;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path
+                                    d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Principle 3 Section: Economy -->
+    <section class="principle-section reveal" id="principle-3" data-section="3">
+        <div class="principle-layout">
+            <div class="principle-left">
+                <div class="search-simulation-box principle-panel">
+                    <div class="search-input-group">
+                        <input type="text" id="interactive-search" placeholder="Type keyword to search..." readonly>
+                        <div class="keyword-chips">
+                            <button class="k-chip" data-word="Women's Health">Women's Health</button>
+                            <button class="k-chip" data-word="LGBTQ Rights">LGBTQ Rights</button>
+                            <button class="k-chip" data-word="Legal Support">Legal Support</button>
+                        </div>
+                    </div>
+
+                    <div class="search-results-box hidden" id="search-results-container">
+                        <div class="result-cards-wrapper">
+                            <div class="blurred-card result-c" id="rc-1">
+                                <h4>████████████</h4>
+                                <p>██████████████████████████████</p>
+                            </div>
+                            <div class="blurred-card result-c" id="rc-2">
+                                <h4>████████</h4>
+                                <p>████████████████████</p>
+                            </div>
+                        </div>
+                        <button class="unlock-btn hidden" id="unlock-info-btn">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Unlock Information
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="principle-right">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 3: Economy</h4>
+                    <h2>Who benefits from technology?</h2>
+                    <p>The modern digital economy thrives on user data. Every search, click, and interaction is tracked and monetized by large corporations. Essential information and resources are often hidden behind algorithms or monetized walls.
+
+                    Understanding who controls and profits from these digital systems is a key step toward achieving equity and autonomy online.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="principle-section reveal" id="principle-4" data-section="4">
+        <div class="principle-layout">
+            <div class="principle-left">
+                <div class="privacy-dashboard principle-panel">
+                    <h3>Data Privacy Settings</h3>
+                    <p class="privacy-status protected" id="privacy-status-text">Your data is currently <strong
+                            id="status-keyword">PROTECTED</strong>.</p>
+
+                    <div class="toggle-container">
+                        <div class="toggle-row">
+                            <span class="toggle-label">Location Tracking</span>
+                            <label class="switch">
+                                <input type="checkbox" class="privacy-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label">Targeted Ads</span>
+                            <label class="switch">
+                                <input type="checkbox" class="privacy-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <span class="toggle-label">Third-Party Data Sharing</span>
+                            <label class="switch">
+                                <input type="checkbox" class="privacy-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="data-stream protected" id="data-stream-box">
+                        <div style='text-align:center; padding-top:30px; font-weight:bold;'>✓ Data Stream Secured</div>
+                    </div>
+                </div>
+            </div>
+            <div class="principle-right">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 4</h4>
+                    <h2>Privacy and Data</h2>
+                    <p>Every online action creates data.
+
+                        The websites you visit, the videos you watch, the products you purchase, and even the places you
+                        travel all contribute to a digital profile.
+
+                        Privacy is not about hiding information.
+
+                        Privacy is about having control over what information is shared and who can access it.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="principle-section reveal" id="principle-5" data-section="5">
+        <div class="principle-layout">
+            <div class="principle-left">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 5</h4>
+                    <h2>Consent</h2>
+                    <p>Every day, people click "Accept" without reading lengthy terms and conditions.
+
+                        Many agreements contain hidden permissions that allow platforms to collect, store, and share
+                        personal information.
+
+                        True consent requires understanding, transparency, and choice.</p>
+                </div>
+            </div>
+            <div class="principle-right">
+                <!-- T&C Interaction Box -->
+                <div class="tc-interaction-box principle-panel" id="tc-box">
+
+                    <!-- Stage 1: Initial prompt -->
+                    <div class="tc-stage" id="tc-stage-1">
+                        <div class="tc-logo-row">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="margin-right: 8px;">
+                                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                            </svg>
+                            <span class="tc-brand-name">Instagram™</span>
+                        </div>
+                        <p class="tc-prompt-text">Before continuing, please review our Terms &amp; Conditions.</p>
+                        <div class="tc-button-row">
+                            <button class="tc-btn tc-accept" id="tc-accept-btn">Accept</button>
+                            <button class="tc-btn tc-decline" id="tc-decline-btn">Decline</button>
+                            <button class="tc-btn tc-readmore" id="tc-readmore-btn">Read More</button>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2: The Scrolling Document -->
+                    <div class="tc-stage hidden" id="tc-stage-2">
+                        <div class="tc-doc-header">
+                            <span>Terms &amp; Conditions</span>
+                        </div>
+                        <div class="tc-document-scroll" id="tc-doc-scroll">
+                            <p>Welcome to SuperApp™. By using this service you agree to the following terms and
+                                conditions in their entirety. These terms constitute a legally binding agreement between
+                                you and SuperApp Inc.</p>
+                            <p>1. <strong>Definitions.</strong> In this agreement, "User" refers to any individual who
+                                accesses or uses the Services. "Services" includes all features, products, and content
+                                provided by SuperApp Inc. "Data" means any information you provide, directly or
+                                indirectly.</p>
+                            <p>2. <strong>User Accounts.</strong> You are responsible for maintaining the
+                                confidentiality of your account credentials and for all activities that occur under your
+                                account. SuperApp reserves the right to terminate accounts at its sole discretion
+                                without notice.</p>
+                            <p>3. <strong>Permitted Use.</strong> You agree to use the platform only for lawful purposes
+                                and in a manner consistent with all applicable laws, regulations, and these Terms.</p>
+                            <div class="tc-highlight-clause" data-label="⚠ Hidden Clause #1">
+                                <strong>4. Data Ownership Transfer.</strong> By accepting these Terms, you irrevocably
+                                grant SuperApp Inc. a perpetual, royalty-free, worldwide license to use, reproduce,
+                                modify, and distribute any content you upload, including personal photos, messages, and
+                                location data, for advertising and AI training purposes, even after account deletion.
+                            </div>
+                            <p>5. <strong>Privacy Policy.</strong> Your privacy is important to us. Please review our
+                                Privacy Policy (a separate 30-page document) which is incorporated herein by reference.
+                            </p>
+                            <p>6. <strong>Intellectual Property.</strong> All content provided through the Services,
+                                excluding User Content, is the exclusive property of SuperApp Inc. and protected by
+                                international copyright law.</p>
+                            <p>7. <strong>Limitation of Liability.</strong> To the fullest extent permitted by law,
+                                SuperApp Inc. shall not be liable for any indirect, incidental, or consequential
+                                damages.</p>
+                            <div class="tc-highlight-clause" data-label="⚠ Hidden Clause #2">
+                                <strong>8. Surveillance Consent.</strong> You consent to SuperApp monitoring your
+                                microphone, camera, and screen activity for "quality assurance and safety" purposes.
+                                This data may be shared with third-party partners and government agencies upon request
+                                without prior notice to you.
+                            </div>
+                            <p>9. <strong>Modifications.</strong> SuperApp reserves the right to change these Terms at
+                                any time. Your continued use of the Services after any such changes constitutes your
+                                acceptance of the new Terms.</p>
+                            <p>10. <strong>Governing Law.</strong> These Terms shall be governed by the laws of the
+                                jurisdiction in which SuperApp Inc. is incorporated. Any disputes shall be resolved
+                                through binding arbitration, and you waive your right to participate in class-action
+                                lawsuits.</p>
+                            <div class="tc-highlight-clause" data-label="⚠ Hidden Clause #3">
+                                <strong>11. Biometric Data.</strong> Your face, voice, and behavioral patterns will be
+                                collected using device sensors and stored in our biometric database for identity
+                                verification and emotion analysis. Clause 11.4: You agree that SuperApp may sell this
+                                biometric data to insurance companies and employers.
+                            </div>
+                            <p>12. <strong>Termination.</strong> Either party may terminate this Agreement at any time.
+                                Upon termination, your license to use the Services immediately ceases. Sections relating
+                                to Data Ownership (Clause 4), Surveillance (Clause 8), and Biometric Data (Clause 11)
+                                survive termination.</p>
+                            <p>13. <strong>Entire Agreement.</strong> These Terms, together with the Privacy Policy and
+                                any additional terms, constitute the entire agreement between you and SuperApp Inc.
+                                regarding the Services.</p>
+                        </div>
+                        <div class="tc-doc-footer">
+                            <button class="tc-btn tc-accept" id="tc-accept-btn-2">✓ Accept</button>
+                            <button class="tc-btn tc-decline" id="tc-decline-btn-2">✗ Decline</button>
+                        </div>
+                    </div>
+
+                    <!-- Stage 3: Reveal message (bubble) -->
+                    <div class="tc-stage hidden" id="tc-stage-3">
+                        <div class="tc-speech-bubble" id="tc-speech-bubble">
+                            <p class="tc-reveal-headline">This is how consent often works online.</p>
+                            <p class="tc-reveal-sub">You clicked <strong>Accept</strong> just like most users without
+                                reading a hundred page document burying surveillance, biometric harvesting, and data
+                                ownership clauses in legalese.</p>
+                            <p class="tc-reveal-sub">A feminist internet demands <em>informed, meaningful, and voluntary
+                                    consent</em>not dark patterns designed to confuse.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="principle-section reveal" id="principle-6" data-section="6">
+        <div class="principle-layout">
+            <div class="principle-left">
+                <div class="insta-mockup principle-panel" id="insta-post-mockup">
+                    <div class="insta-header">
+                        <div class="insta-user-info">
+                            <div class="insta-avatar"></div>
+                            <span class="insta-username">alex_writes</span>
+                        </div>
+                        <span class="insta-dots">•••</span>
+                    </div>
+                    <div class="insta-image">
+                        <img src="pride.png" alt="Pride Month Graphic"
+                            style="width:100%; height:100%; object-fit:cover; display:block;">
+                    </div>
+                    <div class="insta-actions">
+                        <div class="action-icons">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                fill="none">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg>
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                fill="none">
+                                <path
+                                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                                </path>
+                            </svg>
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                fill="none">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </div>
+                        <div class="insta-likes">2,875 Likes</div>
+                        <div class="insta-caption"><strong>alex_writes</strong> Accepting myself was hard, but hiding
+                            was harder. Here's to living authentically. <svg viewBox="0 0 24 24" width="14" height="14"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg></div>
+                    </div>
+                    <div class="insta-comments-section" id="insta-comments">
+                        <!-- Comments injected by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="principle-right">
+                <div class="Section-feminist-internet principle-text">
+                    <h4>#Principle 6</h4>
+                    <h2>Online Violence</h2>
+                    <p>Social media allows people to express themselves, share experiences, and build communities.
+
+                        However, for many users, revealing their identity online can also expose them to discrimination,
+                        harassment, and abuse.
+
+                        The internet should be a place where everyone can express themselves without fear.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>Source: <a href="https://feministinternet.org" target="_blank"
+                    class="footer-link">feministinternet.org</a> · Association for Progressive Communication (APC)</p>
+            <p>Translation & Publication: Body & Data Nepal</p>
+            <p>This website is created for educational purposes.</p>
+
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // ============================================================
+        // HERO HORIZONTAL SCROLL
+        // ============================================================
+        (function () {
+            const landingSec = document.getElementById('landing-section');
+            const slidesTrack = document.getElementById('hero-slides');
+            if (!landingSec || !slidesTrack) return;
+
+            let slideProgress = 0; // 0 to 1
+            let touchStartY = 0;
+
+            function updateSlideTransform() {
+                const offset = slideProgress * 50;
+                slidesTrack.style.transform = `translateX(-${offset}%)`;
+            }
+
+            function handleScrollAttempt(deltaY, e) {
+                const isAtTop = window.scrollY <= 5; // Use small buffer for reliability
+
+                if (isAtTop) {
+                    if (deltaY > 0 && slideProgress < 1) {
+                        // Scrolling down: progress the slide first
+                        e.preventDefault();
+                        slideProgress = Math.min(1, slideProgress + 0.05);
+                        updateSlideTransform();
+                        return true;
+                    } else if (deltaY < 0 && slideProgress > 0) {
+                        // Scrolling up: reverse the slide first
+                        e.preventDefault();
+                        slideProgress = Math.max(0, slideProgress - 0.05);
+                        updateSlideTransform();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Intercept mouse wheel scrolling
+            window.addEventListener('wheel', function (e) {
+                if (handleScrollAttempt(e.deltaY, e)) {
+                    // Event handled, scroll prevented
+                }
+            }, { passive: false });
+
+            // Intercept touch swipe scrolling
+            window.addEventListener('touchstart', function (e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            window.addEventListener('touchmove', function (e) {
+                const touchEndY = e.touches[0].clientY;
+                const deltaY = touchStartY - touchEndY; // positive = swipe up (scroll down)
+                if (handleScrollAttempt(deltaY, e)) {
+                    touchStartY = touchEndY; // continuous update
+                }
+            }, { passive: false });
+
+            updateSlideTransform();
+        })();
+
+        // ============================================================
+        // LEAFLET OPENSTREETMAP
+        // ============================================================
+        (function () {
+            const mapEl = document.getElementById('leaflet-map');
+            if (!mapEl || typeof L === 'undefined') return;
+
+            const map = L.map('leaflet-map', { scrollWheelZoom: true, zoomControl: true })
+                .setView([28.3949, 84.1240], 7);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            const locations = [
+                { name: 'Kathmandu', lat: 27.7172, lng: 85.3240, isp: 'Nepal Telecom / WorldLink', speed: '~80 Mbps', tier: 'fast' },
+                { name: 'Pokhara', lat: 28.2096, lng: 83.9856, isp: 'Regional ISP', speed: '~45 Mbps', tier: 'medium' },
+                { name: 'Biratnagar', lat: 26.4525, lng: 87.2718, isp: 'Regional ISP', speed: '~35 Mbps', tier: 'medium' },
+                { name: 'Jumla', lat: 29.2742, lng: 82.1836, isp: 'Rural Connectivity', speed: '~1 Mbps', tier: 'slow' },
+                { name: 'Janakpur', lat: 26.7288, lng: 85.9254, isp: 'Local ISP', speed: '~12 Mbps', tier: 'medium' }
+            ];
+
+            const pinColors = { fast: '#10b981', medium: '#f59e0b', slow: '#ef4444' };
+
+            locations.forEach(function (loc) {
+                const color = pinColors[loc.tier];
+                const markerHtml = `<div style="
+                width: 22px; height: 22px;
+                background: ${color};
+                border: 3px solid white;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            "></div>`;
+                const icon = L.divIcon({ html: markerHtml, className: '', iconSize: [22, 22], iconAnchor: [11, 22] });
+                const marker = L.marker([loc.lat, loc.lng], { icon }).addTo(map);
+                const popupContent = `<div class="speed-popup">
+                <div class="popup-city">${loc.name}</div>
+                <div class="popup-isp">${loc.isp}</div>
+                <div class="popup-speed ${loc.tier}">${loc.speed}</div>
+            </div>`;
+                marker.bindPopup(popupContent, { closeButton: false, offset: [0, -18] });
+                marker.on('mouseover', function () { this.openPopup(); });
+                marker.on('mouseout', function () { this.closePopup(); });
+            });
+        })();
+    </script>
+</body>
+
+</html>
